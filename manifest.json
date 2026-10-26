@@ -1,0 +1,34 @@
+{
+  "apiVersion": 2,
+  "id": "com.extoci.yt-dlp",
+  "name": "yt-dlp",
+  "version": "1.0.0",
+  "repository": "https://github.com/extoci/dunce-yt-dlp",
+  "description": "Paste a media link and download its audio at one of three MP3 quality levels.",
+  "source": {
+    "capabilities": ["lookup", "details", "download"],
+    "supportedLinks": [{ "schemes": ["https", "http"], "hosts": ["*"] }],
+    "qualitySelection": true
+  },
+  "requires": {
+    "systemTools": [
+      {
+        "id": "yt-dlp",
+        "executable": "yt-dlp",
+        "installHint": "Install yt-dlp and FFmpeg system-wide, then make both available on PATH."
+      },
+      {
+        "id": "ffmpeg",
+        "executable": "ffmpeg",
+        "installHint": "Install FFmpeg system-wide and make it available on PATH."
+      },
+      {
+        "id": "ffprobe",
+        "executable": "ffprobe",
+        "installHint": "Install FFprobe system-wide and make it available on PATH."
+      }
+    ]
+  },
+  "config": [],
+  "permissions": { "network": [], "systemTools": ["yt-dlp", "ffmpeg", "ffprobe"] }
+}
