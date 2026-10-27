@@ -2,7 +2,7 @@
   "apiVersion": 2,
   "id": "com.extoci.yt-dlp",
   "name": "yt-dlp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "repository": "https://github.com/extoci/dunce-yt-dlp",
   "description": "Paste a media link and download its audio at one of three MP3 quality levels.",
   "source": {

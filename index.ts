@@ -10,12 +10,13 @@ type SourceContext = {
 
 type YtDlpInfo = {
   title?: string;
-  uploader?: string;
-  channel?: string;
   artist?: string;
   duration?: number;
   webpage_url?: string;
 };
+
+const infoTemplate =
+  '{"title":%(title)j,"artist":%(artist,uploader,channel|)j,"duration":%(duration|0)j,"webpage_url":%(webpage_url|)j}';
 
 type PluginItem = {
   id: string;
@@ -35,11 +36,7 @@ const qualities = [
 function validateLink(input: string): string {
   if (input.length > 512) throw new Error("This link is too long.");
   const match = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i.exec(input);
-  if (
-    !match ||
-    match[1]!.includes("@") ||
-    /[\u0000-\u0020\\]/.test(input)
-  )
+  if (!match || match[1]!.includes("@") || /[\u0000-\u0020\\]/.test(input))
     throw new Error("Paste a valid HTTP or HTTPS link.");
   return input;
 }
@@ -48,19 +45,28 @@ async function readInfo(context: SourceContext, input: string): Promise<YtDlpInf
   const url = validateLink(input);
   const result = await context.runTool("yt-dlp", [
     "--ignore-config",
-    "--dump-single-json",
     "--skip-download",
+    "--quiet",
+    "--no-progress",
     "--no-warnings",
     "--no-playlist",
+    "--playlist-items",
+    "1",
     "--no-call-home",
+    "--print",
+    infoTemplate,
     "--",
     url,
   ]);
   let info: YtDlpInfo;
   try {
-    info = JSON.parse(result.stdout) as YtDlpInfo;
+    const parsed = JSON.parse(result.stdout.trim()) as unknown;
+    if (parsed === null || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Invalid metadata object");
+    }
+    info = parsed as YtDlpInfo;
   } catch {
-    throw new Error("yt-dlp could not read this link.");
+    throw new Error("yt-dlp returned invalid metadata for this link.");
   }
   if (typeof info.title !== "string" || !info.title.trim())
     throw new Error("yt-dlp did not find a playable item at this link.");
@@ -77,10 +83,11 @@ function safeTitle(title: string): string {
 }
 
 function sourceItem(input: string, info: YtDlpInfo): PluginItem {
+  const artist = info.artist?.trim();
   return {
     id: input,
     title: info.title ?? "Audio",
-    artist: info.artist ?? info.uploader ?? info.channel ?? null,
+    artist: artist || null,
     durationMs:
       typeof info.duration === "number" && Number.isFinite(info.duration)
         ? Math.max(0, Math.round(info.duration * 1000))
@@ -109,10 +116,7 @@ export default {
     };
   },
 
-  async download(
-    context: SourceContext,
-    request: { id: string; quality?: string | null },
-  ) {
+  async download(context: SourceContext, request: { id: string; quality?: string | null }) {
     const url = validateLink(request.id);
     const quality = qualities.find((choice) => choice.id === request.quality) ?? qualities[0]!;
     const info = await readInfo(context, url);
