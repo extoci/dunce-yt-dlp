@@ -2,7 +2,7 @@
   "apiVersion": 2,
   "id": "com.extoci.yt-dlp",
   "name": "yt-dlp",
-  "version": "1.0.1",
+  "version": "1.0.0",
   "repository": "https://github.com/extoci/dunce-yt-dlp",
   "description": "Paste a media link and download its audio at one of three MP3 quality levels.",
   "source": {
@@ -29,6 +29,23 @@
       }
     ]
   },
-  "config": [],
+  "config": [
+    {
+      "key": "useCookies",
+      "label": "Use cookies from this browser",
+      "type": "boolean",
+      "default": false,
+      "description": "Use your browser session for lookups and downloads."
+    },
+    {
+      "key": "cookiesBrowser",
+      "label": "Browser",
+      "type": "string",
+      "default": "chrome",
+      "required": true,
+      "inputWidth": "short",
+      "description": "For example: chrome, firefox, safari, or firefox:default."
+    }
+  ],
   "permissions": { "network": [], "systemTools": ["yt-dlp", "ffmpeg", "ffprobe"] }
 }

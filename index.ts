@@ -1,4 +1,5 @@
 type SourceContext = {
+  readonly config: Readonly<{ useCookies?: boolean; cookiesBrowser?: string }>;
   runTool(
     id: string,
     args: string[],
@@ -33,6 +34,14 @@ const qualities = [
   { id: "9", label: "Compact", format: "MP3 V9" },
 ];
 
+function browserCookieArgs(context: SourceContext): string[] {
+  if (context.config.useCookies !== true) return [];
+  const browser = context.config.cookiesBrowser?.trim();
+  if (!browser || browser.length > 4096 || /[\u0000-\u001f\u007f]/.test(browser))
+    throw new Error("Enter a browser name for browser cookies.");
+  return ["--cookies-from-browser", browser];
+}
+
 function validateLink(input: string): string {
   if (input.length > 512) throw new Error("This link is too long.");
   const match = /^https?:\/\/([^/?#]+)(?:[/?#]|$)/i.exec(input);
@@ -45,6 +54,7 @@ async function readInfo(context: SourceContext, input: string): Promise<YtDlpInf
   const url = validateLink(input);
   const result = await context.runTool("yt-dlp", [
     "--ignore-config",
+    ...browserCookieArgs(context),
     "--skip-download",
     "--quiet",
     "--no-progress",
@@ -126,6 +136,7 @@ export default {
       "yt-dlp",
       [
         "--ignore-config",
+        ...browserCookieArgs(context),
         "--no-playlist",
         "--newline",
         "--no-warnings",
